@@ -1,0 +1,17 @@
+{
+ "code": 200,
+ "status": "OK",
+ "status_message": "Agents selected Successfully.",
+ "Agents": [
+  {"agt_id": 191, "agt_uname": "Agent01", "agt_fname": "Agent", "agt_lname": "01",
+   "agt_email": "agent01@example.com", "agt_phone": "08000000001", "agent_token": "made-up-token-1",
+   "agt_extension_number": "1001", "issup": false},
+  {"agt_id": 238, "agt_uname": "Agent02", "agt_fname": "Agent", "agt_lname": "02",
+   "agt_email": "agent02@example.com", "agt_phone": "08000000002", "agent_token": "made-up-token-2",
+   "agt_extension_number": "1002", "issup": false},
+  {"agt_id": 239, "agt_uname": "Agent03", "agt_fname": "Agent", "agt_lname": "03",
+   "agt_email": "agent03@example.com", "agt_phone": "08000000003", "agent_token": "made-up-token-3",
+   "agt_extension_number": "1003", "issup": false}
+ ],
+ "total": 3
+}

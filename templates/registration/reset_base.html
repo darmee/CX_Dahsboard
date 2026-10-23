@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}
+  The frame for the four "Forgot password" pages: the same card on the brand-coloured background as the login
+  page, with the logo. Each page fills the "card" block; a link back to the login page sits underneath.
+{% endcomment %}
+{% block body_class %}login-page{% endblock %}
+{% block body %}
+<main class="card login">
+  <img class="login-logo" src="{% static 'calls/brand/logo.png' %}" alt="Call Dashboard" width="64" height="57">
+  {% block card %}{% endblock %}
+  <a class="back" href="{% url 'login' %}">&larr; Back to log in</a>
+</main>
+{% endblock %}

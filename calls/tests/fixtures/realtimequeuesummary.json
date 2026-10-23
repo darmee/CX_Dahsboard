@@ -1,0 +1,22 @@
+{
+ "code": "200",
+ "status": "OK",
+ "status_message": "Realtime Queue Summary Data Selected Successfully.",
+ "result": {
+  "agent_total_avg": {
+   "name": "Total / avg", "total_call": 12, "assiged_agent": "0", "live_agent": "3",
+   "live_waiting_calls": 2, "live_agent_calls": 1, "total_agent_calls": 9, "total_abandoned_calls": 3,
+   "total_failover_calls": 0, "ttt": "00:18:00", "twt": "00:06:00", "awt": "00:00:30", "att": "00:01:30"
+  },
+  "agent_queue_details": [
+   {"name": "General", "total_call": 8, "assiged_agent": "3", "live_agent": "2", "live_waiting_calls": 2,
+    "live_agent_calls": 1, "total_agent_calls": 5, "total_abandoned_calls": 3, "total_failover_calls": 0,
+    "awt": "00:00:40", "att": "00:01:20"},
+   {"name": "outbound", "total_call": 4, "assiged_agent": "3", "live_agent": "1", "live_waiting_calls": 0,
+    "live_agent_calls": 0, "total_agent_calls": 4, "total_abandoned_calls": 0, "total_failover_calls": 0,
+    "awt": "00:00:10", "att": "00:01:50"}
+  ],
+  "sup_total_avg": [],
+  "sup_queue_details": []
+ }
+}

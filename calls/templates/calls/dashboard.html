@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}app{% endblock %}
+
+{% block body %}
+<div class="shell">
+  {# ===================== The rail: the logo, the six pages as icons, the user ===================== #}
+  <aside class="rail">
+    <a class="logo" href="{% url 'calls:dashboard' %}" title="Call Dashboard"><img src="{% static 'calls/brand/logo.png' %}" alt="Call Dashboard" width="40" height="36"></a>
+    {# Each button shows one page (a "tab panel"); js/main.js does the switching. The names show on hover. #}
+    <nav class="nav" role="tablist" aria-label="Dashboard pages" aria-orientation="vertical">
+      <span class="nav-indicator" aria-hidden="true"></span>
+      <button type="button" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true" title="Overview"><svg class="icon" aria-hidden="true"><use href="#i-grid"></use></svg><span class="nav-text">Overview</span></button>
+      <button type="button" role="tab" id="tab-agents" aria-controls="panel-agents" aria-selected="false" tabindex="-1" title="Agents"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg><span class="nav-text">Agents</span></button>
+      <button type="button" role="tab" id="tab-agent" aria-controls="panel-agent" aria-selected="false" tabindex="-1" title="Agent detail"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg><span class="nav-text">Agent detail</span></button>
+      <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1" title="Daily activity"><svg class="icon" aria-hidden="true"><use href="#i-list"></use></svg><span class="nav-text">Daily activity</span></button>
+      <button type="button" role="tab" id="tab-monthly" aria-controls="panel-monthly" aria-selected="false" tabindex="-1" title="Monthly"><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg><span class="nav-text">Monthly</span></button>
+      <button type="button" role="tab" id="tab-live" aria-controls="panel-live" aria-selected="false" tabindex="-1" title="Live"><svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg><span class="nav-text">Live</span></button>
+    </nav>
+    {# Right now, straight from HoduCC (js/live.js), on every page. "Waiting" turns amber and pulses while callers wait. #}
+    <div class="rail-live" aria-label="Right now">
+      <span class="rail-stat waiting" data-live-alert title="Callers waiting in a queue right now"><b data-live="waiting_now">–</b>waiting</span>
+      <span class="rail-stat" title="Agents on a call right now"><b data-live="on_calls_now">–</b>on calls</span>
+      <span class="rail-stat" title="Agents logged in but not on a call"><b data-live="agents_idle">–</b>idle</span>
+      <span class="rail-stat" title="Agents logged in"><b data-live="agents_logged_in">–</b>logged in</span>
+    </div>
+    {# The user, and Log out. (No link to Admin: it is for the site's owner only, at its own address.) #}
+    <div class="rail-foot">
+      <span class="avatar" title="Logged in as {{ user.get_username }}">{{ user.get_username|first|upper }}</span>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="rail-button" title="Log out" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"></use></svg></button></form>
+    </div>
+  </aside>
+
+  <div class="main">
+    {# The top bar: the page's name, its filters (only the open page's show), Live, full screen, light/dark #}
+    <header class="topbar">
+      <div class="title">
+        <h1 id="page-title">Overview</h1>
+        <p><span id="page-status" role="status"></span><span class="dot-sep" aria-hidden="true"></span><span data-sync-note>{% if mock %}Sample data{% elif last_sync %}Synced {{ last_sync.finished_at|time:"H:i" }}{% else %}Not synced yet{% endif %}</span></p>
+      </div>
+
+      <div class="topbar-filters">
+        {# Overview (js/overview.js). A change to any box reloads the numbers; there is no Update button. #}
+        <form id="overview-filters" class="filters" data-page="overview">
+          <div class="presets" role="group" aria-label="Quick dates">
+            <button type="button" data-range="today" class="active">Today</button>
+            <button type="button" data-range="yesterday">Yesterday</button>
+            <button type="button" data-range="7d">7 days</button>
+            <button type="button" data-range="month">This month</button>
+          </div>
+          <span class="range"><input type="date" name="from" value="{{ today }}" aria-label="From"><span>to</span><input type="date" name="to" value="{{ today }}" aria-label="To"></span>
+          <select name="queue" aria-label="Queue">
+            <option value="">All queues</option>
+            {% for q in queues %}<option value="{{ q }}">{{ q }}</option>{% endfor %}
+          </select>
+        </form>
+
+        {# Agents (js/agents.js) #}
+        <form id="agents-filters" class="filters" data-page="agents" hidden>
+          <div class="presets" role="group" aria-label="Quick dates">
+            <button type="button" data-range="today">Today</button>
+            <button type="button" data-range="7d">7 days</button>
+            <button type="button" data-range="month" class="active">This month</button>
+            <button type="button" data-range="lastmonth">Last month</button>
+          </div>
+          <span class="range"><input type="date" name="from" value="{{ month_start }}" aria-label="From"><span>to</span><input type="date" name="to" value="{{ today }}" aria-label="To"></span>
+        </form>
+
+        {# Agent detail (js/agent.js) #}
+        <form id="agent-filters" class="filters" data-page="agent" hidden>
+          <select name="agent" aria-label="Agent">
+            {% for a in agents %}<option value="{{ a.username }}">{{ a.display_name }}{% if not a.is_active %} (left){% endif %}</option>{% empty %}<option value="">No agents yet</option>{% endfor %}
+          </select>
+          <div class="presets" role="group" aria-label="Quick dates">
+            <button type="button" data-range="7d">7 days</button>
+            <button type="button" data-range="month" class="active">This month</button>
+            <button type="button" data-range="lastmonth">Last month</button>
+          </div>
+          <span class="range"><input type="date" name="from" value="{{ month_start }}" aria-label="From"><span>to</span><input type="date" name="to" value="{{ today }}" aria-label="To"></span>
+        </form>
+
+        {# Daily activity (js/activity.js) #}
+        <form id="activity-filters" class="filters" data-page="activity" hidden>
+          <div class="presets" role="group" aria-label="Quick dates">
+            <button type="button" data-range="today" class="active">Today</button>
+            <button type="button" data-range="yesterday">Yesterday</button>
+          </div>
+          <input type="date" name="date" value="{{ today }}" aria-label="Day">
+        </form>
+
+        {# Monthly (js/monthly.js) #}
+        <form id="monthly-filters" class="filters" data-page="monthly" hidden>
+          <div class="presets" role="group" aria-label="Quick months">
+            <button type="button" data-range="6m">6 months</button>
+            <button type="button" data-range="12m" class="active">12 months</button>
+            <button type="button" data-range="year">This year</button>
+          </div>
+          <span class="range"><input type="month" name="from" value="{{ year_ago_month }}" placeholder="2025-11" aria-label="From"><span>to</span><input type="month" name="to" value="{{ this_month }}" placeholder="2026-10" aria-label="To"></span>
+          <select name="queue" aria-label="Queue">
+            <option value="">All queues</option>
+            {% for q in queues %}<option value="{{ q }}">{{ q }}</option>{% endfor %}
+          </select>
+        </form>
+      </div>
+
+      <div class="topbar-right">
+        {# "Live": straight from HoduCC on every page, with how often it updates (js/live.js). #}
+        <section class="live" id="live-strip" aria-label="Live numbers" hidden>
+          <span class="live-badge" data-live-badge>
+            <span class="live-dot" aria-hidden="true"></span><b>Live</b>
+            <svg class="countdown" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" pathLength="100"/><circle class="countdown-fill" cx="10" cy="10" r="8" pathLength="100"/></svg>
+            <span data-live-every>{{ dashboard_config.liveRefreshSeconds }} s</span>
+          </span>
+        </section>
+        {# Full screen, for a screen on the wall (js/main.js) #}
+        <button type="button" class="icon-button" data-fullscreen aria-label="Full screen" title="Full screen"><svg class="icon" aria-hidden="true"><use href="#i-expand"></use></svg></button>
+        {# Light or dark mode (js/theme.js). Both icons are here; the CSS shows the one for the mode you'd switch to. #}
+        <button type="button" class="icon-button theme-toggle" data-theme-toggle aria-label="Switch between light and dark mode">
+          <svg class="icon moon" aria-hidden="true"><use href="#i-moon"></use></svg>
+          <svg class="icon sun" aria-hidden="true"><use href="#i-sun"></use></svg>
+        </button>
+      </div>
+    </header>
+
+    {# Sync trouble, and filling in history. The JavaScript keeps these up to date on every refresh. #}
+    <div id="sync-banner" class="banner {{ sync_problem.level }}" role="status"{% if not sync_problem %} hidden{% endif %}>{{ sync_problem.message }}</div>
+    <div id="fill-banner" class="banner info" role="status" hidden></div>
+
+    <main class="content">
+      {# ===================== Overview (js/overview.js) ===================== #}
+      <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" class="panel">
+        {# Each tile has a data-metric name (overview.js fills it in) and a data-drill list: click it to see those calls. #}
+        <div class="tiles eight">
+          <article class="card tile hero has-gauge" data-drill="inbound">
+            <div class="gauge" aria-hidden="true"><svg viewBox="0 0 40 40"><circle class="gauge-track" cx="20" cy="20" r="16" pathLength="100"/><circle class="gauge-fill" data-gauge="answer_ratio" cx="20" cy="20" r="16" pathLength="100"/></svg></div>
+            <div>
+              <div class="tile-head"><h3>Answer ratio (in)</h3><span class="info" title="Answered calls in ÷ all calls in. Calls out don't count here: they have their own connect rate, under Calls out."><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg></span></div>
+              <div class="value-row"><p class="value" data-metric="answer_ratio">–</p><span class="delta" data-delta="answer_ratio" hidden></span></div>
+              <p class="sub" data-sub="answer_ratio"></p>
+            </div>
+          </article>
+          <article class="card tile" data-drill="inbound"><div class="tile-head"><span class="tile-icon tone-in"></span><h3>Calls in</h3></div><div class="value-row"><p class="value" data-metric="inbound">–</p><span class="delta" data-delta="inbound" hidden></span></div><p class="sub" data-sub="inbound"></p><svg class="spark in" data-spark="inbound" aria-hidden="true"></svg></article>
+          <article class="card tile" data-drill="outbound"><div class="tile-head"><span class="tile-icon tone-out"></span><h3>Calls out</h3><span class="info" title="Connected: the customer picked up. Not connected: no answer, busy, switched off or the line failed (HoduCC's status DIAL). Open the list to see each call and why."><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg></span></div><div class="value-row"><p class="value" data-metric="outbound">–</p><span class="delta" data-delta="outbound" hidden></span></div><p class="sub" data-sub="outbound"></p><svg class="spark out" data-spark="outbound" aria-hidden="true"></svg></article>
+          <article class="card tile" data-drill="unanswered"><div class="tile-head"><span class="tile-icon tone-warn"></span><h3>Unanswered</h3></div><div class="value-row"><p class="value" data-metric="unanswered">–</p><span class="delta" data-delta="unanswered" hidden></span></div><p class="sub" data-sub="unanswered"></p></article>
+          <article class="card tile" data-drill="answered_in"><div class="tile-head"><span class="tile-icon"></span><h3>Avg delay</h3></div><div class="value-row"><p class="value" data-metric="delay">–</p><span class="delta" data-delta="delay" hidden></span></div><p class="sub" data-sub="delay"></p></article>
+          <article class="card tile" data-drill="held"><div class="tile-head"><span class="tile-icon"></span><h3>Avg hold</h3></div><p class="value" data-metric="hold">–</p><p class="sub" data-sub="hold"></p></article>
+          <article class="card tile" data-drill="answered"><div class="tile-head"><span class="tile-icon"></span><h3>Avg talk</h3></div><div class="value-row"><p class="value" data-metric="talk">–</p><span class="delta" data-delta="talk" hidden></span></div><p class="sub">per answered call</p></article>
+          <article class="card tile" data-drill="rejected"><div class="tile-head"><span class="tile-icon tone-warn"></span><h3>Rejections</h3></div><p class="value" data-metric="rejection">–</p><p class="sub" data-sub="rejection"></p></article>
+        </div>
+
+        {# The hour chart on the left; on the right, every call's outcome as a ring, and the top agents under it #}
+        <div class="row overview-row">
+          <article class="card fill">
+            <header class="card-head"><h2>Calls by hour</h2><p>Click a bar to see those calls</p></header>
+            <div class="chart-box"><canvas id="hourly-chart" role="img" aria-label="Calls by hour of day"></canvas></div>
+          </article>
+          <div class="stack">
+            <article class="card ring-card">
+              <header class="card-head"><h2>Call outcomes</h2><p>Click a piece</p></header>
+              <div class="ring">
+                <div class="ring-box"><canvas id="outcome-chart" role="img" aria-label="Every call's outcome"></canvas></div>
+                <ul class="ring-legend" id="outcome-legend"></ul>
+              </div>
+            </article>
+            <article class="card fill">
+              <header class="card-head"><h2>Top agents</h2><p>Calls answered, in and out</p></header>
+              <div class="scroll"><ol class="rank" id="overview-rank"></ol></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {# ===================== Agents: who calls and who receives the most (js/agents.js) ===================== #}
+      <section id="panel-agents" role="tabpanel" aria-labelledby="tab-agents" class="panel" hidden>
+        <div class="tiles five slim">
+          <article class="card tile hero" data-drill="outbound" data-drill-agent="top_caller"><div class="tile-head"><span class="tile-icon"></span><h3>Top caller</h3></div><p class="value name" data-agents="top_caller">–</p><p class="sub" data-agents-sub="top_caller"></p></article>
+          <article class="card tile" data-drill="answered_in" data-drill-agent="top_receiver"><div class="tile-head"><span class="tile-icon tone-in"></span><h3>Top receiver</h3></div><p class="value name" data-agents="top_receiver">–</p><p class="sub" data-agents-sub="top_receiver"></p></article>
+          <article class="card tile" data-drill="outbound"><div class="tile-head"><span class="tile-icon tone-out"></span><h3>Calls made</h3></div><p class="value" data-agents="made">–</p><p class="sub" data-agents-sub="made"></p></article>
+          <article class="card tile" data-drill="answered_in"><div class="tile-head"><span class="tile-icon tone-in"></span><h3>Calls received</h3></div><p class="value" data-agents="received">–</p><p class="sub">calls in answered</p></article>
+          <article class="card tile" data-drill="rejected"><div class="tile-head"><span class="tile-icon tone-warn"></span><h3>Missed rings</h3></div><p class="value" data-agents="missed_rings">–</p><p class="sub" data-agents-sub="working"></p></article>
+        </div>
+
+        {# The leaderboard on the left, the full height; the two ranking charts stacked on the right #}
+        <div class="agents-grid">
+          <article class="card fill">
+            <header class="card-head"><h2>Who calls the most</h2><p class="legend"><span><i class="key connected"></i>Connected</span><span title="No answer, busy, switched off or the line failed"><i class="key not-connected"></i>Not connected</span></p></header>
+            <div class="chart-box"><canvas id="made-chart" role="img" aria-label="Calls made per agent, most first"></canvas></div>
+          </article>
+          <article class="card fill">
+            <header class="card-head"><h2>Who receives the most</h2><p class="legend"><span><i class="key answered"></i>Answered</span><span><i class="key unanswered"></i>Rings missed</span></p></header>
+            <div class="chart-box"><canvas id="received-chart" role="img" aria-label="Calls received per agent, most first"></canvas></div>
+          </article>
+          <article class="card fill leaderboard">
+            <header class="card-head"><h2>Leaderboard</h2><p>Every agent in this period, most calls handled first · click a row to see their calls</p></header>
+            <div class="scroll">
+              <table>
+                <thead><tr>
+                  <th>#</th><th>Agent</th><th>Calls made</th><th>Connected</th><th>Calls received</th>
+                  <th>Missed rings</th><th>Talk time</th><th>Avg talk</th>
+                </tr></thead>
+                <tbody id="leaderboard"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {# ===================== Agent detail: one agent over a date range (js/agent.js) ===================== #}
+      <section id="panel-agent" role="tabpanel" aria-labelledby="tab-agent" class="panel" hidden>
+        <div class="tiles six">
+          <article class="card tile hero" data-drill="answered"><div class="tile-head"><span class="tile-icon"></span><h3>Calls handled</h3></div><p class="value" data-agent="handled">–</p><p class="sub" data-agent-sub="handled"></p></article>
+          <article class="card tile" data-drill="outbound"><div class="tile-head"><span class="tile-icon tone-out"></span><h3>Calls made</h3></div><p class="value" data-agent="made">–</p><p class="sub" data-agent-sub="made"></p></article>
+          <article class="card tile" data-drill="answered_in"><div class="tile-head"><span class="tile-icon tone-in"></span><h3>Calls received</h3></div><p class="value" data-agent="answered_in">–</p><p class="sub">calls in answered</p></article>
+          <article class="card tile" data-drill="not_connected"><div class="tile-head"><span class="tile-icon tone-out"></span><h3>Connect rate</h3></div><p class="value" data-agent="connect">–</p><p class="sub">of calls made</p></article>
+          <article class="card tile" data-drill="rejected"><div class="tile-head"><span class="tile-icon tone-warn"></span><h3>Missed rings</h3></div><p class="value" data-agent="missed_rings">–</p><p class="sub">rings they didn't take</p></article>
+          <article class="card tile" data-drill="answered"><div class="tile-head"><span class="tile-icon"></span><h3>Avg talk</h3></div><p class="value" data-agent="avg_talk">–</p><p class="sub" data-agent-sub="talk"></p></article>
+        </div>
+
+        <div class="row side-wide">
+          <article class="card fill">
+            <header class="card-head"><h2>Calls per day</h2><p>Click a bar to see that day's calls</p></header>
+            <div class="chart-box"><canvas id="agent-days-chart" role="img" aria-label="This agent's calls per day"></canvas></div>
+          </article>
+          <article class="card fill">
+            <header class="card-head"><h2>Latest calls</h2><p>Newest first</p></header>
+            <div class="scroll">
+              <table class="compact">
+                <thead><tr><th>Time</th><th>In/Out</th><th>Status</th><th>Talk</th></tr></thead>
+                <tbody id="agent-calls"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {# ===================== Daily activity: the tables for one day (js/activity.js) ===================== #}
+      <section id="panel-activity" role="tabpanel" aria-labelledby="tab-activity" class="panel tables" hidden>
+        {# The two tables side by side: the agents on the left, every call on the right #}
+        <div class="activity-grid">
+          <article class="card fill">
+            <header class="card-head"><h2>Agents</h2><p>Busiest first · click a row for their calls</p></header>
+            <div class="scroll">
+              <table class="compact">
+                <thead><tr>
+                  <th>Agent</th><th title="Calls in answered">In</th><th title="Calls out the customer picked up">Out</th>
+                  <th title="Calls out the customer never picked up">Not conn.</th><th title="Rings they didn't take">Missed</th>
+                  <th>Talk</th><th title="First and last call of the day">Hours</th>
+                </tr></thead>
+                <tbody id="agent-activity"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card fill">
+            <header class="card-head"><h2>Call log</h2><p>Newest first · "Rang …": nobody answered; it rang them before the caller hung up</p></header>
+            <div class="scroll">
+              <table class="compact">
+                <thead><tr><th>Time</th><th>Customer</th><th>In/Out</th><th>Status</th><th>Why it ended</th><th>Agent</th><th>Wait</th><th>Talk</th></tr></thead>
+                <tbody id="call-log"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {# ===================== Monthly: history, month by month (js/monthly.js) ===================== #}
+      <section id="panel-monthly" role="tabpanel" aria-labelledby="tab-monthly" class="panel" hidden>
+        <div class="tiles five">
+          <article class="card tile hero" data-drill="all"><div class="tile-head"><span class="tile-icon"></span><h3>Calls</h3></div><p class="value" data-month="calls">–</p><p class="sub" data-month-sub="calls"></p><svg class="spark" data-spark="months" aria-hidden="true"></svg></article>
+          <article class="card tile" data-drill="inbound"><div class="tile-head"><span class="tile-icon tone-in"></span><h3>Answer ratio (in)</h3></div><p class="value" data-month="answer_ratio">–</p><p class="sub" data-month-sub="answer_ratio"></p></article>
+          <article class="card tile" data-drill="outbound"><div class="tile-head"><span class="tile-icon tone-out"></span><h3>Connect rate</h3></div><p class="value" data-month="connect">–</p><p class="sub" data-month-sub="connect"></p></article>
+          <article class="card tile" data-drill="answered"><div class="tile-head"><span class="tile-icon"></span><h3>Avg talk</h3></div><p class="value" data-month="avg_talk">–</p><p class="sub">per answered call</p></article>
+          <article class="card tile"><div class="tile-head"><span class="tile-icon"></span><h3>Busiest month</h3></div><p class="value name" data-month="busiest">–</p><p class="sub" data-month-sub="busiest"></p></article>
+        </div>
+
+        <div class="row side-wide">
+          <article class="card fill">
+            <header class="card-head"><h2>Calls per month</h2><p>Click a bar to see that month's calls</p></header>
+            <div class="chart-box"><canvas id="monthly-chart" role="img" aria-label="Calls per month"></canvas></div>
+          </article>
+          <article class="card fill">
+            <header class="card-head"><h2>Top agents</h2><p>Over these months · click to see their calls</p></header>
+            <div class="rank-pair">
+              <div class="fill"><h4>Most calls made</h4><div class="scroll"><ol class="rank" id="monthly-made"></ol></div></div>
+              <div class="fill"><h4>Most calls received</h4><div class="scroll"><ol class="rank" id="monthly-received"></ol></div></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {# ===================== Live (js/live.js) ===================== #}
+      <section id="panel-live" role="tabpanel" aria-labelledby="tab-live" class="panel live-page" hidden>
+        {# The tiles and the agents ring side by side, so the queue table below gets the full width #}
+        <div class="row live-top" style="--side: 420px">
+          <div class="tiles three">
+            <article class="card tile"><div class="tile-head"><span class="tile-icon tone-warn"></span><h3>Waiting now</h3></div><p class="value" data-live-total="waiting">–</p><p class="sub">callers in a queue</p></article>
+            <article class="card tile"><div class="tile-head"><span class="tile-icon tone-out"></span><h3>On calls</h3></div><p class="value" data-live-total="on_calls">–</p><p class="sub">agents talking</p></article>
+            <article class="card tile"><div class="tile-head"><span class="tile-icon tone-in"></span><h3>Idle</h3></div><p class="value" data-live-total="idle">–</p><p class="sub">logged in, not on a call</p></article>
+            <article class="card tile"><div class="tile-head"><span class="tile-icon"></span><h3>Logged in</h3></div><p class="value" data-live-total="logged_in">–</p><p class="sub" data-live-sub="agents_total"></p></article>
+            <article class="card tile hero wide"><div class="tile-head"><span class="tile-icon"></span><h3>Answered today</h3></div><p class="value" data-live-total="answered_today">–</p><p class="sub" data-live-sub="calls_today"></p></article>
+          </div>
+          <article class="card ring-card">
+            <header class="card-head"><h2>Agents right now</h2></header>
+            <div class="ring">
+              <div class="ring-box"><canvas id="live-agents-chart" role="img" aria-label="Agents on calls, idle and not logged in"></canvas></div>
+              <ul class="ring-legend" id="live-agents-legend"></ul>
+            </div>
+            <p class="empty-note" data-live-agents-note hidden>No agents yet. They appear after the first sync with HoduCC.</p>
+          </article>
+        </div>
+
+        <article class="card fill">
+          <header class="card-head"><h2>Queues right now</h2><p>Counts from HoduCC's realtime summary</p></header>
+          <div class="scroll">
+            <table>
+              <thead><tr>
+                <th>Queue</th><th>Waiting</th><th>On calls</th><th>Idle</th><th>Logged in</th><th>Assigned</th>
+                <th>Calls today</th><th>Answered</th><th>Abandoned</th><th>Avg wait</th><th>Avg talk</th>
+              </tr></thead>
+              <tbody id="live-queues"></tbody>
+            </table>
+          </div>
+        </article>
+        <p class="footnote">
+          HoduCC's API gives these as counts. It has no list of the individual calls in progress, so callers' numbers
+          and call lengths appear in the Daily activity call log once each call has ended.
+        </p>
+      </section>
+    </main>
+  </div>
+</div>
+
+{# ===================== The drill-down: the calls behind a number, sliding in from the right (js/drill.js) ===================== #}
+<div class="drawer-backdrop" data-drawer-close hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <header class="drawer-head">
+    <div>
+      <p class="drawer-kicker" id="drawer-kicker"></p>
+      <h2 id="drawer-title">Calls</h2>
+      <p class="drawer-sub" id="drawer-sub"></p>
+    </div>
+    <button type="button" class="icon-button" data-drawer-close aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg></button>
+  </header>
+  <p class="drawer-note" id="drawer-note" hidden></p>
+  <div class="drawer-reasons" id="drawer-reasons"></div>
+  <div class="scroll">
+    <table class="compact">
+      <thead><tr id="drawer-columns"></tr></thead>
+      <tbody id="drawer-calls"></tbody>
+    </table>
+  </div>
+</aside>
+{% endblock %}
+
+{% block scripts %}
+{% comment %}
+  Settings for the JavaScript (API addresses come from Django, so nothing is hard-coded).
+  json_script writes them safely into the page; js/main.js reads them.
+  ({# ... #} comments must fit on one line; longer ones need comment tags like these.)
+{% endcomment %}
+{{ dashboard_config|json_script:"dashboard-config" }}
+<script src="{% static 'calls/vendor/chart.umd.js' %}"></script>
+<script src="{% static 'calls/vendor/motion.js' %}"></script>
+<script src="{% static 'calls/vendor/lenis.min.js' %}"></script>
+<script type="module" src="{% static 'calls/js/main.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,8 @@
+# Packages the dashboard needs, at the exact versions it was tested with.
+# Exact versions mean every computer gets the same thing. To upgrade one,
+# change its number, run "pip install -r requirements.txt", then run the tests.
+Django==5.2.18
+requests==2.34.2
+python-dotenv==1.2.4
+tzdata==2026.5      # time zone data (needed on Windows)
+whitenoise==6.12.0  # serves the CSS/JS when DJANGO_DEBUG=0

@@ -1,0 +1,23 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f1a60">
+  <title>{% block title %}Call Dashboard{% endblock %}</title>
+  {# Light or dark, as chosen with the switch at the top of the dashboard (remembered by the browser). Set before #}
+  {# the styles load, so the page never flashes the wrong one. Without a choice, it follows the computer.      #}
+  <script>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'calls/brand/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'calls/brand/apple-touch-icon.png' %}">
+  <link rel="preload" href="{% static 'calls/fonts/plus-jakarta-sans-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'calls/vendor/lenis.css' %}">
+  <link rel="stylesheet" href="{% static 'calls/dashboard.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% include "icons.html" %}
+  {% block body %}{% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

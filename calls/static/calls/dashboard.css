@@ -1,0 +1,598 @@
+/* The dashboard's look. Colours are variables, so light and dark mode only change them in one place.
+   The brand colour is #4f1a60. */
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("fonts/plus-jakarta-sans-latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+/* ---------- Light mode (the default) ---------- */
+:root {
+  --brand: #4f1a60; --brand-deep: #2a0c34; --brand-bright: #6b2780; --brand-glow: #8e44ad;
+  --brand-soft: #f5eff8; --brand-tint: #eadcf0;
+  --accent: #4f1a60; --button: #4f1a60;
+  --bg: #f4f1f7; --card: #fff; --ink: #1d1424; --muted: #6c6176; --line: #ece6f0; --line-strong: #dcd1e3;
+  --good: #0f7a4a; --bad: #c2334d; --warn: #9a5b0c; --info: #4f1a60;
+  /* Chart colours, one meaning each on every page, checked with a colour-blindness validator against the card
+     colour (see js/charts.js): calls in answered blue, unanswered amber; calls out connected green, not connected
+     grey; other calls in pink; grey-lilac for "none" (agents not logged in). */
+  --chart-answered: #2563eb; --chart-unanswered: #f59e0b; --chart-connected: #10b981; --chart-not-connected: #9ca3af;
+  --chart-other: #db2777; --chart-neutral: #d6d0de;
+  --page: radial-gradient(900px 420px at 100% 0%, color-mix(in srgb, var(--brand-glow) 8%, transparent), transparent 70%), var(--bg);
+  --shadow: 0 1px 2px rgba(42, 12, 52, .04), 0 10px 30px -18px rgba(42, 12, 52, .22);
+  --shadow-lift: 0 2px 4px rgba(42, 12, 52, .06), 0 22px 40px -20px rgba(42, 12, 52, .38);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, .8);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  --radius: 16px;
+  --rail: 76px;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --font: "Plus Jakarta Sans", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  color-scheme: light;
+}
+/* ---------- Dark mode: the computer's setting (unless "light" was chosen with the switch)... ----------
+   A deep plum page with slightly lighter plum cards. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --accent: #e0b8ee; --button: #7a2f93; --info: #e0b8ee;
+    --brand-soft: #2e1838; --brand-tint: #432451;
+    --bg: #170a1e; --card: #231029; --ink: #f6eef9; --muted: #b6a4c1; --line: #3a2045; --line-strong: #4e2d5c;
+    --good: #43cf8f; --bad: #f47c90; --warn: #e8a94f;
+    --chart-answered: #4f8ff7; --chart-unanswered: #d97706; --chart-connected: #059669; --chart-not-connected: #7d7590;
+    --chart-other: #ec4899; --chart-neutral: #4a3d56;
+    --page: radial-gradient(1000px 520px at 85% -10%, rgba(142, 68, 173, .35), transparent 70%),
+            radial-gradient(800px 500px at 0% 100%, rgba(107, 39, 128, .35), transparent 70%), #170a1e;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 10px 30px -18px rgba(0, 0, 0, .7);
+    --shadow-lift: 0 2px 4px rgba(0, 0, 0, .4), 0 22px 40px -20px rgba(0, 0, 0, .85);
+    --highlight: inset 0 1px 0 rgba(255, 255, 255, .05);
+    color-scheme: dark;
+  }
+}
+/* ...or "dark" chosen with the switch. (The same values as above: keep the two blocks alike.) */
+:root[data-theme="dark"] {
+  --accent: #e0b8ee; --button: #7a2f93; --info: #e0b8ee;
+  --brand-soft: #2e1838; --brand-tint: #432451;
+  --bg: #170a1e; --card: #231029; --ink: #f6eef9; --muted: #b6a4c1; --line: #3a2045; --line-strong: #4e2d5c;
+  --good: #43cf8f; --bad: #f47c90; --warn: #e8a94f;
+  --chart-answered: #4f8ff7; --chart-unanswered: #d97706; --chart-connected: #059669; --chart-not-connected: #7d7590;
+  --chart-other: #ec4899; --chart-neutral: #4a3d56;
+  --page: radial-gradient(1000px 520px at 85% -10%, rgba(142, 68, 173, .35), transparent 70%),
+          radial-gradient(800px 500px at 0% 100%, rgba(107, 39, 128, .35), transparent 70%), #170a1e;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 10px 30px -18px rgba(0, 0, 0, .7);
+  --shadow-lift: 0 2px 4px rgba(0, 0, 0, .4), 0 22px 40px -20px rgba(0, 0, 0, .85);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, .05);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 20px; line-height: 1.2; letter-spacing: -.025em; margin: 0; font-weight: 750; white-space: nowrap; }
+h2 { font-size: 14.5px; margin: 0; font-weight: 700; letter-spacing: -.015em; }
+h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+:focus-visible { outline: none; box-shadow: var(--ring); }
+.sr-only, .nav-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- The rail: a slim plum bar with the logo, the pages as icons, and the user ---------- */
+.rail {
+  position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 22px;
+  padding: 16px 12px; color: #fff;
+  background:
+    radial-gradient(160% 40% at 0% 0%, rgba(255, 255, 255, .14), transparent 60%),
+    linear-gradient(180deg, var(--brand-bright) 0%, var(--brand) 40%, var(--brand-deep) 100%);
+  box-shadow: 12px 0 40px -24px rgba(42, 12, 52, .6);
+}
+/* The logo on a white tile, so its purple reads on the purple rail */
+.logo {
+  display: grid; place-items: center; width: 50px; height: 50px; flex: none; border-radius: 14px; background: #fff;
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, .55);
+}
+.logo img { width: 36px; height: auto; display: block; }
+
+/* The page buttons. The white pill behind the open one (.nav-indicator) slides between them (js/fx.js). */
+.nav { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.nav-indicator {
+  position: absolute; top: 0; left: 0; width: 0; height: 0; border-radius: 13px; background: #fff;
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .6); pointer-events: none;
+}
+.nav [role="tab"] {
+  position: relative; z-index: 1; display: grid; place-items: center; width: 48px; height: 46px; border-radius: 13px;
+  color: rgba(255, 255, 255, .78); transition: color .2s, background .2s;
+}
+.nav [role="tab"] .icon { width: 21px; height: 21px; }
+.nav [role="tab"]:hover { color: #fff; background: rgba(255, 255, 255, .1); }
+.nav [role="tab"][aria-selected="true"] { color: var(--brand); background: transparent; }
+.nav [role="tab"]:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, .45); }
+
+/* Right now, on the rail, on every page: callers waiting, agents on calls, idle, logged in */
+.rail-live { display: grid; gap: 3px; width: 100%; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, .14); }
+.rail-stat {
+  display: grid; justify-items: center; padding: 5px 0; border-radius: 11px; line-height: 1.2;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: rgba(255, 255, 255, .7);
+  transition: background .3s, color .3s;
+}
+.rail-stat b { font-size: 18px; font-weight: 800; letter-spacing: -.02em; color: #fff; text-transform: none; }
+/* Callers waiting: amber and gently pulsing, so nobody misses it */
+.rail-stat.waiting.alert, .rail-stat.waiting.alert b { color: #2a0c34; }
+.rail-stat.waiting.alert { background: #fbbf24; animation: waiting 1.6s ease-in-out infinite; }
+@keyframes waiting { 50% { box-shadow: 0 0 0 5px rgba(251, 191, 36, .35); } }
+
+.rail-foot { margin-top: auto; display: grid; justify-items: center; gap: 10px; }
+.rail-foot form { margin: 0; }
+.avatar {
+  display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; flex: none;
+  font-size: 12.5px; font-weight: 750; background: #fff; color: var(--brand);
+}
+.rail-button {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: #fff;
+  background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16); transition: background .2s;
+}
+.rail-button:hover { background: rgba(255, 255, 255, .22); }
+
+/* ---------- The top bar: the page's name, its filters, then Live, full screen and light/dark ---------- */
+.main { position: relative; display: flex; flex-direction: column; min-width: 0; }
+.topbar {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title filters right";
+  align-items: center; gap: 10px 18px; padding: 12px 22px;
+}
+.title { grid-area: title; min-width: 0; max-width: 300px; }
+.title p { margin-top: 2px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 7px; white-space: nowrap; overflow: hidden; }
+.title p span { overflow: hidden; text-overflow: ellipsis; }
+#page-status { flex: none; }
+#page-status.error { flex: 0 1 auto; color: var(--bad); font-weight: 650; }
+.dot-sep { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .6; flex: none; }
+.dot-sep:first-child, #page-status:empty + .dot-sep { display: none; }
+.topbar-filters { grid-area: filters; min-width: 0; }
+.topbar-right { grid-area: right; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.content { padding: 4px 22px 18px; display: grid; gap: 14px; align-content: start; }
+
+/* The round buttons: full screen, light/dark (moon in light mode, sun in dark), and the drill-down's × */
+.icon-button {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; flex: none; color: var(--ink);
+  background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .3s var(--ease), color .2s;
+}
+.icon-button:hover { color: var(--accent); transform: translateY(-1px); }
+.theme-toggle .sun, .theme-toggle[data-mode="dark"] .moon { display: none; }
+.theme-toggle[data-mode="dark"] .sun { display: block; }
+
+/* "Live": a pulsing dot, how often HoduCC is asked, and a ring counting down to the next update */
+.live { display: flex; align-items: center; gap: 6px; }
+.live[hidden] { display: none; }
+.live-badge {
+  display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px 0 11px; border-radius: 11px; font-size: 12.5px;
+  color: var(--good); background: color-mix(in srgb, var(--good) 10%, var(--card)); border: 1px solid color-mix(in srgb, var(--good) 24%, transparent);
+}
+.live-badge b { font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 11.5px; }
+.live-badge [data-live-every] { color: var(--muted); font-weight: 650; }
+.live-badge.paused { color: var(--muted); background: var(--brand-soft); border-color: var(--line); }
+.live-badge.paused .live-dot, .live-badge.paused .live-dot::after { background: var(--muted); animation: none; }
+.live-dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.live-dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--good); animation: pulse 1.8s ease-out infinite; }
+@keyframes pulse { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
+.countdown { width: 15px; height: 15px; transform: rotate(-90deg); }
+.countdown circle { fill: none; stroke-width: 3; stroke: color-mix(in srgb, var(--good) 22%, transparent); }
+.countdown .countdown-fill { stroke: var(--good); stroke-dasharray: 100; stroke-dashoffset: 0; stroke-linecap: round; }
+.countdown.running .countdown-fill { animation: countdown linear forwards; }
+@keyframes countdown { to { stroke-dashoffset: 100; } }
+/* The live numbers beside the badge: only on wide screens (the Live page shows them all the time) */
+
+/* ---------- The filters, in the top bar: quick dates, the dates, a drop-down. A change reloads. ---------- */
+.filters { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.filters[hidden] { display: none; }
+.presets { display: flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.presets button {
+  height: 28px; padding: 0 11px; border-radius: 9px; font-size: 12.5px; font-weight: 650; color: var(--muted); white-space: nowrap;
+  transition: color .2s, background .2s, box-shadow .2s;
+}
+.presets button:hover { color: var(--ink); }
+.presets button.active { color: #fff; background: var(--button); box-shadow: 0 6px 14px -8px var(--button); }
+.range { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; font-weight: 650; }
+
+input, select, button { font: inherit; color: var(--ink); }
+input, select {
+  height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); box-shadow: var(--shadow);
+  transition: border-color .15s, box-shadow .15s;
+}
+.filters input, .filters select { font-size: 13px; font-weight: 600; }
+input:hover, select:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--line-strong)); }
+input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+input[type="month"] { width: 150px; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+button.primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px;
+  border-radius: 11px; font-weight: 700; color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--button) 80%, #fff), var(--button));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 8px 18px -10px var(--button);
+  transition: filter .2s, transform .2s var(--ease);
+}
+button.primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+button.wide { width: 100%; height: 44px; }
+
+.banner {
+  margin: 0 22px 10px; padding: 9px 14px; border-radius: 12px; color: var(--ink); font-size: 13px;
+  border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); border-left-width: 4px;
+  background: color-mix(in srgb, var(--warn) 10%, var(--card));
+}
+.banner.error, .error {
+  padding: 10px 14px; border-radius: 12px; color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent);
+  border-left-width: 4px; background: color-mix(in srgb, var(--bad) 8%, var(--card));
+}
+/* Filling in history: a purple note with a progress bar */
+.banner.info { border-color: color-mix(in srgb, var(--info) 30%, transparent); background: color-mix(in srgb, var(--info) 7%, var(--card)); }
+.banner.info .progress { display: block; height: 4px; margin-top: 7px; border-radius: 999px; background: var(--brand-soft); overflow: hidden; }
+.banner.info .progress i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .6s var(--ease); }
+.banner[hidden] { display: none; }
+
+/* ---------- Pages and cards ---------- */
+.panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.panel[hidden] { display: none; }
+/* While new numbers load, the old ones stay, a little faded (no blank flash) */
+.panel > * { transition: opacity .25s; }
+.panel.is-loading > * { opacity: .55; }
+.card {
+  position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px;
+  box-shadow: var(--shadow), var(--highlight);
+}
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+.card-head p { color: var(--muted); font-size: 12px; text-align: right; }
+/* A chart's key in its card's header */
+.legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 10px; height: 10px; border-radius: 3px; background: var(--chart-answered); }
+.key.unanswered { background: var(--chart-unanswered); }
+.key.connected { background: var(--chart-connected); }
+.key.not-connected { background: var(--chart-not-connected); }
+
+/* ---------- Number tiles: a coloured dot and a small capital label, the number, one line under it ---------- */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tiles.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.tiles.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.tiles.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tile { overflow: hidden; padding: 11px 14px; transition: transform .35s var(--ease), box-shadow .35s var(--ease); }
+.tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift), var(--highlight); }
+.tile.wide { grid-column: span 2; }
+/* Tiles that open a list of calls: a pointer, and an arrow that appears on hover (js/drill.js adds it) */
+.tile[data-drill] { cursor: pointer; }
+.drill-hint { position: absolute; right: 9px; bottom: 9px; color: var(--accent); opacity: 0; transform: translateX(-4px); transition: opacity .25s, transform .25s var(--ease); }
+.drill-hint .icon { width: 15px; height: 15px; }
+.tile[data-drill]:hover .drill-hint, .tile[data-drill]:focus-visible .drill-hint { opacity: 1; transform: none; }
+.tile.hero .drill-hint { color: #fff; }
+.tile-head { position: relative; z-index: 1; display: flex; align-items: center; gap: 7px; }
+.tile h3 { margin: 0; font-size: 11px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The dot before a tile's name, coloured like the charts: calls in blue, calls out green, things to watch amber */
+.tile-icon { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--accent); }
+.tile-icon.tone-in { background: var(--chart-answered); }
+.tile-icon.tone-out { background: var(--chart-connected); }
+.tile-icon.tone-warn { background: var(--chart-unanswered); }
+.value-row { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.tile .value { position: relative; z-index: 1; margin-top: 3px; font-size: 25px; line-height: 1.15; font-weight: 780; letter-spacing: -.03em; white-space: nowrap; }
+.tile .value.name { font-size: 19px; overflow: hidden; text-overflow: ellipsis; }
+/* The line under the number: one line; hovering shows all of it */
+.tile .sub { position: relative; z-index: 1; margin-top: 2px; padding-right: 14px; font-size: 11.5px; color: var(--muted); min-height: 1.4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.value.good { color: var(--good); }
+.value.bad { color: var(--bad); }
+/* "▲ 12%" beside a number: the change on the period before. Green when that's better, red when worse. */
+.delta { font-size: 11px; font-weight: 750; padding: 2px 7px; border-radius: 999px; white-space: nowrap; color: var(--muted); background: var(--brand-soft); }
+.delta.better { color: var(--good); background: color-mix(in srgb, var(--good) 13%, transparent); }
+.delta.worse { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.tile.hero .delta { color: #fff; background: rgba(255, 255, 255, .18); }
+.info { display: inline-grid; color: var(--muted); cursor: help; }
+.info .icon { width: 13px; height: 13px; }
+/* A small trend line in the corner of a tile (js/fx.js draws it) */
+.spark { position: absolute; top: 12px; right: 12px; width: 36%; max-width: 110px; height: 28px; overflow: visible; }
+.spark path.line { fill: none; stroke: var(--chart-answered); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.spark path.area { fill: color-mix(in srgb, var(--chart-answered) 14%, transparent); stroke: none; }
+.spark.out path.line { stroke: var(--chart-connected); }
+.spark.out path.area { fill: color-mix(in srgb, var(--chart-connected) 14%, transparent); }
+/* The one tile per page that matters most: in the brand colour */
+.tile.hero {
+  color: #fff; border-color: transparent;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(255, 255, 255, .2), transparent 55%),
+    radial-gradient(80% 120% at 0% 100%, rgba(142, 68, 173, .55), transparent 70%),
+    linear-gradient(135deg, var(--brand-bright), var(--brand) 55%, var(--brand-deep));
+  box-shadow: 0 16px 30px -18px rgba(79, 26, 96, .95), inset 0 1px 0 rgba(255, 255, 255, .18);
+}
+.tile.hero h3, .tile.hero .sub, .tile.hero .info { color: rgba(255, 255, 255, .82); }
+.tile.hero .value, .tile.hero .value.good, .tile.hero .value.bad { color: #fff; }
+.tile.hero .tile-icon { background: #fff; }
+.tile.hero .spark path.line { stroke: #fff; }
+.tile.hero .spark path.area { fill: rgba(255, 255, 255, .16); }
+/* The answer ratio's ring: the fill carries the state (green at 80% or more, amber below) */
+.tile.has-gauge { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; container-type: inline-size; }
+@container (max-width: 210px) { .gauge { display: none; } }
+.gauge { width: 50px; height: 50px; }
+.gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge circle { fill: none; stroke-width: 4.5; }
+.gauge-track { stroke: rgba(255, 255, 255, .2); }
+.gauge-fill { stroke: #fff; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.gauge-fill.good { stroke: #8be3b8; }
+.gauge-fill.bad { stroke: #ffc56b; }
+
+/* ---------- Chart, ring, list and table cards ---------- */
+.row { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr) var(--side, 380px); }
+.row.side-wide { --side: 460px; }
+.row.overview-row { --side: 400px; }
+.stack { display: grid; gap: 14px; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; }
+/* Agents: the leaderboard on the left, the full height; the two charts stacked on the right */
+.agents-grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+.agents-grid .leaderboard { grid-column: 1; grid-row: 1 / span 2; }
+.agents-grid > :not(.leaderboard) { grid-column: 2; }
+/* Its rows share the height, so a short list fills the card instead of leaving it half empty */
+.leaderboard table { height: 100%; }
+.leaderboard thead tr { height: 1px; }
+/* Daily activity: the agents and the call log side by side */
+.activity-grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+.fill { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.chart-box { position: relative; height: 300px; }
+.empty-note { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+
+/* A ring chart with its key beside it: a dot, the name, the count and its share (like "Disbursed 506 38.7%") */
+.ring { display: grid; grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 18px; }
+.ring-box { position: relative; height: 140px; }
+.ring-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.ring-legend li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 44px; align-items: center; gap: 8px; font-size: 13px; }
+.ring-legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+.ring-legend .name { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ring-legend b { font-weight: 780; font-variant-numeric: tabular-nums; text-align: right; }
+.ring-legend .pct { color: var(--muted); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Ranked lists: number, initials, name, a bar, the count. Each row opens that agent's calls. */
+.rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rank li { display: grid; grid-template-columns: 22px 30px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px; border-radius: 10px; transition: background .2s; }
+.rank li[data-agent] { cursor: pointer; }
+.rank li:hover { background: var(--brand-soft); }
+.rank .no { font-size: 12px; font-weight: 750; color: var(--muted); text-align: center; }
+.rank li:nth-child(-n+3) .no { color: var(--accent); }
+.rank .who { min-width: 0; }
+.rank .who b { display: block; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { display: block; height: 5px; margin-top: 5px; border-radius: 999px; background: var(--brand-soft); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: inherit; background: var(--chart-answered); transform-origin: left; }
+.bar i.out { background: var(--chart-connected); }
+.rank .count { font-weight: 750; font-variant-numeric: tabular-nums; }
+.rank .empty { grid-template-columns: 1fr; text-align: center; color: var(--muted); padding: 20px; }
+.rank-pair { flex: 1; min-height: 0; display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.scroll { overflow: auto; overscroll-behavior: contain; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+td { white-space: nowrap; }
+th {
+  position: sticky; top: 0; z-index: 1; vertical-align: bottom;
+  color: var(--muted); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; line-height: 1.25;
+  background: var(--brand-soft); border-bottom: 0;
+}
+th:first-child { border-radius: 10px 0 0 10px; }
+th:last-child { border-radius: 0 10px 10px 0; }
+tbody tr { transition: background .2s; }
+tbody tr:hover td { background: color-mix(in srgb, var(--brand-soft) 70%, transparent); }
+tbody tr[data-agent] { cursor: pointer; }
+tbody tr:last-child td { border-bottom: 0; }
+.compact th, .compact td { padding-left: 8px; padding-right: 8px; }
+.activity-grid .compact th, .activity-grid .compact td { padding-left: 6px; padding-right: 6px; }
+/* A number with a small bar under it (the leaderboard's calls made and received) */
+.cell-bar { display: grid; gap: 3px; min-width: 76px; font-weight: 650; }
+.leaderboard td { padding-top: 8px; padding-bottom: 8px; font-size: 15px; }
+.leaderboard .person { font-size: 15.5px; }
+.leaderboard .person .avatar { width: 34px; height: 34px; font-size: 12px; }
+.cell-bar .bar { margin-top: 0; }
+.medal { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; font-size: 12px; font-weight: 800; color: var(--muted); background: var(--brand-soft); }
+.medal.top { color: #fff; background: linear-gradient(135deg, var(--brand-bright), var(--brand-deep)); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 650; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.answered { background: color-mix(in srgb, var(--good) 12%, transparent); color: var(--good); }
+.pill.unanswered { background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); }
+.pill.other { background: color-mix(in srgb, var(--muted) 12%, transparent); color: var(--muted); }
+.direction { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.direction .icon { width: 15px; height: 15px; color: var(--accent); }
+.person { display: inline-flex; align-items: center; gap: 10px; font-weight: 650; }
+.person .avatar, .rank .avatar { width: 28px; height: 28px; font-size: 11px; color: var(--accent); background: var(--brand-soft); border: 1px solid var(--brand-tint); }
+.person-login { display: block; font-size: 11.5px; font-weight: 450; color: var(--muted); }
+.reason, .nobody { color: var(--muted); }
+.nobody { font-style: italic; }
+.empty { color: var(--muted); text-align: center; padding: 24px; }
+.footnote { font-size: 12px; color: var(--muted); }
+
+/* ---------- The drill-down: a panel sliding in from the right with the calls behind a number ---------- */
+.drawer-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(20, 8, 26, .35); backdrop-filter: blur(3px); }
+.drawer {
+  position: fixed; z-index: 50; top: 0; right: 0; bottom: 0; width: min(900px, 100vw); display: flex; flex-direction: column; gap: 12px;
+  padding: 20px 22px; background: var(--card); border-left: 1px solid var(--line); box-shadow: -30px 0 60px -30px rgba(20, 8, 26, .5);
+}
+.drawer[hidden], .drawer-backdrop[hidden] { display: none; }
+.drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.drawer-kicker { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.drawer-head h2 { font-size: 20px; margin-top: 2px; }
+.drawer-sub { margin-top: 3px; font-size: 13px; color: var(--muted); }
+.drawer-note {
+  padding: 10px 12px; border-radius: 12px; font-size: 13px; color: var(--ink);
+  background: color-mix(in srgb, var(--chart-answered) 7%, var(--card)); border: 1px solid color-mix(in srgb, var(--chart-answered) 22%, transparent);
+}
+.drawer-note[hidden] { display: none; }
+.drawer-reasons { display: flex; flex-wrap: wrap; gap: 6px; }
+.drawer-reasons:empty { display: none; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--ink); background: var(--brand-soft); border: 1px solid var(--line); }
+.chip b { font-weight: 800; }
+.drawer .scroll { flex: 1; min-height: 0; }
+
+/* ---------- Computers (1000px wide or more): every page fits the screen, whatever its height ----------
+   The page never scrolls. The last row of each page takes the height that is left; charts stretch to
+   fill their card and tables scroll inside theirs. */
+@media (min-width: 1000px) {
+  body.app { height: 100vh; height: 100dvh; overflow: hidden; }
+  .shell { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); height: 100vh; height: 100dvh; }
+  .rail { min-height: 0; overflow: hidden; }
+  .main { min-height: 0; overflow: hidden; }
+  .content { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .panel { min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+  /* Daily activity: the agents table as tall as its rows, up to 40% of the page; the call log gets the rest */
+  .panel.tables { grid-template-rows: minmax(0, 1fr); }
+  .panel.live-page { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .row, .agents-grid, .activity-grid, .stack { min-height: 0; }
+  /* Agents: the two charts take the height that's left; the leaderboard is as tall as its rows, up to 36% */
+  .agents-grid { grid-template-rows: repeat(2, minmax(0, 1fr)); }
+  .fill .chart-box { flex: 1; min-height: 0; height: auto; }
+  .fill .scroll { flex: 1; min-height: 0; }
+}
+/* Narrower computers: the page name's line is shorter, and the side columns narrower */
+@media (min-width: 1000px) and (max-width: 1399px) {
+  .topbar { padding: 10px 20px; }
+  .title { max-width: 240px; }
+  .content { padding: 2px 20px 16px; }
+  .banner { margin: 0 20px 10px; }
+  .row { --side: 330px; }
+  .row.side-wide { --side: 420px; }
+  .row.overview-row { --side: 380px; }
+  .ring { grid-template-columns: 116px minmax(0, 1fr); gap: 14px; }
+  .ring-box { height: 116px; }
+  .tiles.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* Below 1300px wide the filters go on a second line of the top bar, so the page's name and the buttons keep their room */
+@media (min-width: 1000px) and (max-width: 1299px) {
+  /* Agents: the leaderboard across the top, as tall as its rows; the charts side by side under it */
+  .agents-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: fit-content(48%) minmax(0, 1fr); }
+  .agents-grid .leaderboard { grid-column: 1 / -1; grid-row: 1; }
+  .agents-grid > :not(.leaderboard) { grid-column: auto; grid-row: 2; }
+  .leaderboard table { height: auto; }
+  /* Daily activity: the agents above the call log */
+  .activity-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: fit-content(42%) minmax(0, 1fr); }
+  .topbar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title right" "filters filters"; }
+  .title { max-width: none; }
+}
+/* Wide screens: all eight Overview tiles in one row, the answer ratio a little wider */
+@media (min-width: 1600px) { .tiles.eight { grid-template-columns: minmax(0, 1.5fr) repeat(7, minmax(0, 1fr)); } }
+
+/* Short screens: everything tighter, so the charts keep their room */
+@media (min-width: 1000px) and (max-height: 820px) {
+  .app .topbar { padding-top: 8px; padding-bottom: 8px; }
+  .app h1 { font-size: 18px; }
+  .app .content, .app .panel, .app .row, .app .stack, .app .tiles, .app .agents-grid { gap: 10px; }
+  .app input, .app select, .app .icon-button, .app .live-badge { height: 32px; }
+  .app .icon-button { width: 32px; }
+  .app .presets button { height: 25px; }
+  .app .card { padding: 10px 13px; }
+  .app .card-head { margin-bottom: 6px; }
+  .app .tile { padding: 8px 12px; }
+  .app .tile .value { margin-top: 1px; font-size: 21px; }
+  .app .tile .value.name { font-size: 17px; }
+  .app .gauge { width: 42px; height: 42px; }
+  .app .spark { top: 9px; height: 22px; }
+  .app th, .app td { padding: 6px 9px; }
+  .app .rank li { padding: 4px 6px; }
+  .app .ring { grid-template-columns: 112px minmax(0, 1fr); }
+  .app .ring-box { height: 112px; }
+  .app .ring-legend { gap: 4px; }
+  .app .rail { gap: 16px; padding: 12px 12px; }
+  .app .nav [role="tab"] { height: 40px; }
+  .app .logo { width: 46px; height: 46px; }
+}
+/* Very short screens (laptops at 150% zoom): the tiles in one row, no card subtitles except chart keys */
+@media (min-width: 1000px) and (max-height: 640px) {
+  .app .title p, .app .card-head p:not(.legend), .app .footnote, .app .tile .info { display: none; }
+  .app .tiles.eight { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .app .tiles.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .app .tile .value { font-size: 19px; }
+  .app .tile .sub { font-size: 11px; }
+  .app .tile h3 { font-size: 10px; letter-spacing: .03em; }
+  .app .spark, .app .gauge { display: none; }
+  .app .tile.has-gauge { grid-template-columns: minmax(0, 1fr); }
+  .app .ring { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; }
+  .app .ring-box { height: 84px; }
+  .app .ring-legend li { font-size: 12px; }
+  .app .nav { gap: 2px; }
+  .app .nav [role="tab"] { height: 36px; }
+  .app .rail { gap: 10px; }
+}
+
+/* ---------- Tablets and phones: the rail becomes a bar at the top, and the page scrolls ---------- */
+@media (max-width: 999px) {
+  .rail { flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 10px 14px; }
+  .logo { width: 44px; height: 44px; }
+  .logo img { width: 32px; }
+  .nav { order: 3; flex: 1 0 100%; flex-direction: row; justify-content: space-between; gap: 4px; }
+  .nav [role="tab"] { flex: 1; width: auto; height: 42px; }
+  .rail-foot { margin: 0; display: flex; align-items: center; gap: 10px; }
+  .rail-live { order: 4; display: flex; justify-content: space-around; padding: 6px 0 0; }
+  .rail-stat { display: flex; align-items: baseline; gap: 5px; padding: 4px 9px; }
+  .rail-stat b { font-size: 15px; }
+  .topbar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title right" "filters filters"; padding: 12px 16px; }
+  .title { max-width: none; }
+  .title p { flex-direction: column; align-items: flex-start; gap: 0; white-space: normal; }
+  .dot-sep { display: none; }
+  .content { padding: 4px 16px 24px; }
+  .banner { margin: 0 16px 10px; }
+  .row, .agents-grid, .activity-grid { grid-template-columns: minmax(0, 1fr); }
+  .agents-grid > :not(.leaderboard), .agents-grid .leaderboard { grid-column: auto; grid-row: auto; }
+  .agents-grid .leaderboard { order: -1; }
+  .leaderboard table { height: auto; }
+  .tiles, .tiles.five, .tiles.six, .tiles.three, .tiles.eight { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card-head { flex-direction: column; gap: 2px; }
+  .card-head p { text-align: left; }
+  .scroll { max-height: 70vh; }
+  .rank-pair { grid-template-rows: none; }
+  .drawer { width: 100vw; padding: 16px; }
+}
+@media (max-width: 640px) {
+  .chart-box { height: 260px; }
+  th, td { padding: 8px 7px; }
+  .tile.has-gauge { grid-template-columns: 1fr; }
+  .gauge { display: none; }
+  .ring { grid-template-columns: 120px minmax(0, 1fr); gap: 12px; }
+  .ring-box { height: 120px; }
+  .range input { width: 132px; }
+}
+@media (max-width: 340px) { .tiles, .tiles.five, .tiles.six, .tiles.three, .tiles.eight { grid-template-columns: minmax(0, 1fr); } .tile.wide { grid-column: auto; } }
+
+/* ---------- Login: a card in the middle of a brand-coloured page ---------- */
+.login-page {
+  min-height: 100vh; display: grid; place-items: center; padding: 24px;
+  background:
+    radial-gradient(60% 50% at 80% 10%, rgba(255, 255, 255, .14), transparent 60%),
+    radial-gradient(50% 50% at 10% 90%, rgba(142, 68, 173, .7), transparent 70%),
+    linear-gradient(135deg, var(--brand-deep), var(--brand) 60%, var(--brand-bright));
+}
+.login { width: min(400px, 100%); padding: 34px; display: grid; gap: 14px; box-shadow: 0 30px 60px -20px rgba(20, 4, 26, .6); }
+/* The logo on a white tile, so it reads in dark mode too */
+.login-logo { width: 64px; height: auto; padding: 10px; border-radius: 16px; background: #fff; box-shadow: 0 10px 24px -12px rgba(42, 12, 52, .5); }
+.login h1 { margin-top: 6px; font-size: 25px; }
+.login form { display: grid; gap: 14px; margin-top: 6px; }
+.login label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 650; }
+.login input { width: 100%; height: 44px; }
+/* "Forgot password?" under the boxes, and the forgot-password pages (templates/registration/reset_base.html) */
+.login .forgot { justify-self: end; margin-top: -6px; font-size: 13px; font-weight: 650; }
+.login .error p { margin: 0; }
+.login .notes { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 6px; }
+.login .button-link {
+  display: grid; place-items: center; height: 44px; border-radius: 11px; font-weight: 700; color: #fff; text-decoration: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--button) 80%, #fff), var(--button));
+}
+.login .back { justify-self: center; font-size: 13px; font-weight: 650; }
+
+/* Anyone who has asked their computer for less motion gets none */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Narrow and very short screens (laptops at 150% zoom): eight tiles in one row leave no room for their names,
+   so the Overview keeps two rows of four */
+@media (min-width: 1000px) and (max-width: 1279px) and (max-height: 640px) {
+  .app .tiles.eight { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .app .tile { padding: 6px 11px; }
+  .app .tile .value { font-size: 17px; }
+}
+
+/* Short screens: the rail shows the two live numbers that matter most (waiting, on calls)... */
+@media (min-width: 1000px) and (max-height: 820px) {
+  .app .rail-stat:nth-child(n+3) { display: none; }
+  .app .rail-stat b { font-size: 16px; }
+}
+/* ...and very short ones just the callers waiting */
+@media (min-width: 1000px) and (max-height: 560px) {
+  .app .rail-stat:nth-child(n+2) { display: none; }
+  .app .rail-live { padding-top: 6px; }
+}

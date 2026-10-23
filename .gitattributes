@@ -1,0 +1,6 @@
+# Store text files with LF line endings, whatever computer they come from.
+* text=auto eol=lf
+# Images and other binary files are never changed.
+*.png binary
+*.ico binary
+*.pdf binary

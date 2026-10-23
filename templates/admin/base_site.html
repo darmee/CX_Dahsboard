@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% comment %}
+  Django's own admin page frame (admin/base_site.html), with our name and brand colour.
+  Only the colours of the header, breadcrumbs and buttons change; Django's light and dark themes still work.
+{% endcomment %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Call Dashboard admin{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+  :root {
+    --primary: #6b2780; --secondary: #4f1a60; --accent: #f1d9fa; --primary-fg: #fff;
+    --header-bg: #4f1a60; --header-color: #eadcf0; --header-branding-color: #fff; --header-link-color: #fff;
+    --breadcrumbs-bg: #3d1249; --breadcrumbs-link-fg: #f1d9fa;
+    --button-bg: #4f1a60; --button-hover-bg: #3d1249;
+    --default-button-bg: #6b2780; --default-button-hover-bg: #4f1a60;
+  }
+  /* Links and the selected row in the brand colour too, but only in the light theme */
+  @media (prefers-color-scheme: light) {
+    html:not([data-theme="dark"]) { --link-fg: #5c2170; --link-hover-color: #2a0c34; --link-selected-fg: #4f1a60; --selected-row: #f5eff8; }
+  }
+  html[data-theme="light"] { --link-fg: #5c2170; --link-hover-color: #2a0c34; --link-selected-fg: #4f1a60; --selected-row: #f5eff8; }
+  #header { background: linear-gradient(110deg, #2a0c34, #4f1a60 55%, #6b2780); }
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}"><img src="{% static 'calls/brand/logo.png' %}" alt="" width="28" height="25" style="vertical-align: middle; margin-right: 10px; padding: 4px; border-radius: 8px; background: #fff; box-sizing: content-box">Call Dashboard · Admin</a></div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
