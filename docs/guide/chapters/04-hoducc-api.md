@@ -45,7 +45,7 @@ hour-by-hour requests and found no rows missing. Only **finished** calls are lis
 | --- | --- | --- |
 | `call_id` | HoduCC's ID for the call | `Call.call_id` |
 | `call_type` | `INBOUND` or `OUTBOUND` | `direction` |
-| `call_status` | `AGENT` answered (or, outbound, the customer picked up); `ABANDONED` caller gave up; `DROPPED`; `DIAL` outbound call that never connected | `status` |
+| `call_status` | `AGENT` answered (or, outbound, the customer picked up); `ABANDONED` caller gave up; `DROPPED`; `HANGUP` call in turned away at once, no queue (in our data always `TENANT_CALLS_LIMIT_REACHED`: the account's limit on calls at the same time); `DIAL` outbound call that never connected | `status` |
 | `queue_name`, `campaign_name` | e.g. `General` / `inbound`, `outbound` / `outgoing` | same names |
 | `agent_username` | The agent's login, e.g. `Agent01` (empty if nobody answered) | `agent_username` |
 | `caller_number`, `phone_number` | The customer's number | Only the last 4 digits: `caller_masked` |

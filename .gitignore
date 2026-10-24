@@ -4,6 +4,8 @@ __pycache__/
 *.pyc
 staticfiles/
 .venv/
+# Service logs on the server (NSSM writes web.log and sync.log here)
+logs/
 # Real HoduCC replies, with customers' full phone numbers
 sample/
 .ruff_cache/

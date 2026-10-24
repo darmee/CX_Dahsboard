@@ -28,7 +28,7 @@ The layout gives the charts the room: a slim rail with the company logo and the 
 in the top bar (any change reloads the numbers), compact number tiles, and charts with their values written
 on them. Calls nobody answered show who they rang (**"Rang Amina"**), or **"Not answered"** if they never
 reached anyone. The rail shows the live counts on every page; **"waiting"** turns amber and pulses while
-callers wait. The Rejections tile opens the missed rings behind it. Answers to common questions (what asks
+callers wait. The Missed rings (agents) tile opens the missed rings behind it. Answers to common questions (what asks
 HoduCC every 15 seconds, how average talk is worked out, what "General" means) are in
 [HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md#questions-people-ask).
 

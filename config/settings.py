@@ -169,7 +169,7 @@ HODU = {
     "SAMPLE_DIR": BASE_DIR / "sample",
     "TIMEOUT_SECONDS": int(env("HODU_TIMEOUT_SECONDS", "30")),
     # Which call_status values count as "customer never answered".
-    "UNANSWERED_STATUSES": env_list("HODU_UNANSWERED_STATUSES", "ABANDONED,DROPPED"),
+    "UNANSWERED_STATUSES": env_list("HODU_UNANSWERED_STATUSES", "ABANDONED,DROPPED,HANGUP"),
     # How long live tiles are cached, in seconds.
     "LIVE_CACHE_SECONDS": int(env("HODU_LIVE_CACHE_SECONDS", "15")),
     # Live mode: while the dashboard shows today, fetch from HoduCC at most this often,

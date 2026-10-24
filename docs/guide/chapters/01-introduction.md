@@ -33,9 +33,9 @@ On every page:
 
 ![A drill-down: the calls out behind a tile, with who hung up. (“Why it ended” fills in once a day is synced with this version; the customer digits in this picture are made up.)](images/drill.png)
 
-The Rejections tile (and every missed-rings number) opens the rings behind it: each time a call rang an agent who didn't pick up, why, and who took the call in the end.
+The Missed rings (agents) tile (and every missed-rings number) opens the rings behind it: each time a call rang an agent who didn't pick up, why, and who took the call in the end.
 
-![Missed rings: the rings behind the Rejections tile](images/rings.png)
+![Missed rings: the rings behind the Missed rings (agents) tile](images/rings.png)
 
 ### Overview
 

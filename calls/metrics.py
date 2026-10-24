@@ -10,7 +10,7 @@ which is fast even with hundreds of thousands of calls.
 How each metric is defined:
     Calls in / out    direction = INBOUND / OUTBOUND
     Answered          status = AGENT
-    Unanswered        status in HODU_UNANSWERED_STATUSES (ABANDONED, DROPPED)
+    Unanswered        status in HODU_UNANSWERED_STATUSES (ABANDONED, DROPPED, HANGUP)
     Answer ratio      answered inbound / all inbound x 100
     Connect rate      answered outbound (the customer picked up) / all outbound x 100
     Delay             wait_seconds (queue_wait_time) of inbound calls. Averaged separately
@@ -286,7 +286,7 @@ def _missed_rings(offers):
 
 def rejection_stats(start, end, queue=None):
     """
-    Rings that weren't picked up, for the Rejections tile.
+    Rings that weren't picked up, for the Missed rings (agents) tile.
     Returns None when we have no offer data at all (endpoint not synced yet).
     """
     if not AgentOffer.objects.exists():
@@ -312,7 +312,7 @@ def rejection_stats(start, end, queue=None):
 
 def ring_list(start, end, queue=None, agent=None, limit=500):
     """
-    The rings behind the Rejections tile and the missed-rings numbers (a drill-down, like call_list):
+    The rings behind the Missed rings (agents) tile and the missed-rings numbers (a drill-down, like call_list):
     rings to an agent that weren't picked up (see _missed_rings), newest first, optionally for one queue and one
     agent. Each comes with the call it belonged to: the customer, how the call ended, and who answered it in the
     end (often someone else). Returns how many there are, the latest `limit`, and the most common reasons.

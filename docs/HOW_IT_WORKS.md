@@ -401,14 +401,14 @@ All from `calls/metrics.py`, for the date range and queue you pick.
 | --- | --- | --- |
 | **Calls in** | count where direction = INBOUND | `call_type` |
 | **Calls out** | count where direction = OUTBOUND | `call_type` |
-| **Unanswered** | count where status is ABANDONED or DROPPED (set by `HODU_UNANSWERED_STATUSES`) | `call_status` |
+| **Unanswered** | count where status is ABANDONED, DROPPED or HANGUP (set by `HODU_UNANSWERED_STATUSES`) | `call_status` |
 | **Answer ratio** | answered inbound ÷ all inbound × 100. Below it: "3 of 9 inbound", plus "· 2 other" if some inbound calls were neither answered nor unanswered. Outbound calls are not in it, so on a mostly-outbound day it rests on a handful of calls | `call_status`, `call_type` |
 | **Connect rate** | outbound calls the customer picked up (status `AGENT`) ÷ all outbound × 100. Shown under Calls out, and on Agents, Agent detail and Monthly | `call_status`, `call_type` |
 | **Not connected** | outbound calls the customer never picked up: any status other than `AGENT`, in practice `DIAL`. That means no answer, busy, phone switched off, or the line failed; the drill-down's "Why it ended" column gives HoduCC's reason for each | `call_status`, `hangup_reason` |
 | **Avg delay** | average wait of answered inbound calls. Below it: the longest wait, and the average wait before callers gave up | `queue_wait_time` |
 | **Avg hold** | average hold time, only over calls that were put on hold | `hold_duration` |
 | **Avg talk** | average talk time of answered calls, inbound and outbound | `agent_duration` |
-| **Rejections** | rings to an agent that the agent didn't take, and how long they rang | `getAgentOfferedCalls` |
+| **Missed rings (agents)** | rings to an agent that the agent didn't take, and how long they rang | `getAgentOfferedCalls` |
 
 **"Other" inbound calls.** A call whose status is neither `AGENT` nor one of `HODU_UNANSWERED_STATUSES`
 (for example one that ended in the IVR menu, or one still in progress) counts in "all inbound", so it lowers the
@@ -437,7 +437,7 @@ customer, or system). Customers appear as `•••2698`: the full number is ne
 HoduCC's `hangup_reason`, stored since migration 0003; calls synced before then show "–" until their day is
 synced again (`sync_calls --from ...`).
 
-**Rejections in detail.** Every time a call rings an agent, HoduCC records an "offer". Say call 123 rings
+**Missed rings (agents) in detail.** Every time a call rings an agent, HoduCC records an "offer". Say call 123 rings
 Agent02 for 12 seconds (not taken), then Agent01, who answers. That's 2 offers, 1 rejection,
 and an average of 12 seconds ringing before the reject. The code counts one offer per answered call as *taken*:
 the last ring to the agent who answered it. Every other offer is a rejection or a miss, including an earlier ring
@@ -488,9 +488,16 @@ by the agent.
 **What are missed rings and rejections?** Every time a call rings an agent, HoduCC records a ring. A ring the agent
 didn't pick up is a *missed ring*: they declined it (`CALL_REJECTED`), didn't answer before HoduCC moved the call on
 (`RECOVERY_ON_TIMER_EXPIRE`, `NO_ANSWER`), or the caller hung up while it rang (`ORIGINATOR_CANCEL`). The Overview's
-**Rejections** tile counts them all; the Agents page counts each agent's. Click either to see the rings: when, the
+**Missed rings (agents)** tile (called Rejections until October 2026, which read as if customers rejected calls)
+counts them all; the Agents page counts each agent's. Click either to see the rings: when, the
 agent, how long it rang, why it stopped, and who took the call in the end. (They couldn't be clicked before because
 the drill-down only listed calls; rings now have their own list, `/api/rings/`.)
+
+**Why are there more missed rings than calls?** Most missed rings last **0 seconds** (`NORMAL_UNSPECIFIED`,
+`UNALLOCATED_NUMBER`): HoduCC tried the agent's phone, couldn't reach it (softphone offline, not registered or
+busy), and tried again every 2 seconds until it rang or the caller hung up. One call can make dozens. They stay in
+the count on purpose, because they show agents who are in the queue but can't be reached. "Answered by" is who
+took the *call* in the end, often the same agent a few seconds later, not that ring.
 
 **What does the queue "General" mean?** It is the name of the queue set up in HoduCC that calls in arrive in.
 In your data: 1,263 calls in came through General (and 39 calls out were made from it); calls out made directly are
@@ -604,7 +611,7 @@ Run them after every change. If one fails, it names what's wrong.
 | `Token Authentication Failed` | Wrong or expired token | Ask HoduCC for a new one |
 | `You cannot access this APIs` | Your token doesn't have API access | Ask HoduCC to enable it |
 | Dashboard shows 0 calls for past days | Those days were never fetched | Wait for the purple "Fetching history" bar to finish, or run `python manage.py sync_calls --from YYYY-MM-DD` |
-| "Not answered" in the agent column | Nobody took that call in: the caller hung up first (ABANDONED, or HANGUP in the menu), so HoduCC names no agent | Nothing; it is how those calls are |
+| "Not answered" in the agent column | Nobody took that call in: the caller hung up first (ABANDONED), or HoduCC turned the call away (HANGUP), so HoduCC names no agent | Nothing; it is how those calls are |
 | "Why it ended" shows "–" | The call was synced before the reason was stored (migration 0003) | Run `python manage.py migrate`, then re-sync those days with `--from` |
 | "reported N calls but sent M, so this day is incomplete" | HoduCC cut the results off. The M calls are saved, but the sync counts as failed | Ask HoduCC about paging or limits |
 | Yellow note "HoduCC's server was slow to answer at 12:00" (before: red "Could not reach HoduCC … ConnectTimeout / Read timed out") | HoduCC's server, or the network to it, was slow for a moment. Each request is tried 3 times (waiting 2 s, then 4 s) before the sync gives up | Nothing: the next sync, within a minute, usually works. If it turns red (3 failures in a row, or no good sync for 15 minutes), check this computer's internet connection, then ask HoduCC whether their server is down |

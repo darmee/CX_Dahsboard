@@ -234,6 +234,17 @@ function settle(chart) {
   setTimeout(() => { chart.$grown = true; }, 2500);
 }
 
+// The piece of a bar (or ring) under the pointer, or null. Not the `bars` Chart.js hands to onClick: with the
+// "index" hover mode those are every series at that position, Answered first, so clicking the Unanswered piece of
+// a stack would open the answered calls. A click just beside a thin piece still finds the nearest one.
+function clickedBar(chart, event) {
+  const notEmpty = (bar) => Number(chart.data.datasets[bar.datasetIndex].data[bar.index]) > 0;
+  const [bar] = chart.getElementsAtEventForMode(event, "nearest", { intersect: true }, true).filter(notEmpty);
+  if (bar || chart.config.type === "doughnut") return bar || null;
+  const [near] = chart.getElementsAtEventForMode(event, "nearest", { intersect: false, axis: "xy" }, true).filter(notEmpty);
+  return near || null;
+}
+
 // Draw (or update) the chart in <canvas id=canvasId>. Returns the Chart, or null if Chart.js didn't load.
 // `onBarClick({ datasetIndex, index })`, if given, is called when a bar (or a piece of one) is clicked.
 export function drawChart(canvasId, build, onBarClick) {
@@ -243,8 +254,8 @@ export function drawChart(canvasId, build, onBarClick) {
   if (onBarClick) {
     config.options = {
       ...config.options,
-      onClick: (_event, bars) => { if (bars.length) onBarClick(bars[0]); },
-      onHover: (event, bars) => { event.native.target.style.cursor = bars.length ? "pointer" : "default"; },
+      onClick: (event, _bars, chart) => { const bar = clickedBar(chart, event); if (bar) onBarClick(bar); },
+      onHover: (event, _bars, chart) => { event.native.target.style.cursor = clickedBar(chart, event) ? "pointer" : "default"; },
     };
   }
   const existing = charts.get(canvasId);

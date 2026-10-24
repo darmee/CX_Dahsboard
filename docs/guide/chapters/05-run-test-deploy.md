@@ -59,7 +59,7 @@ over a login, change the name; the earlier calls then show the new name too (the
 | `DJANGO_ALLOWED_HOSTS` | The addresses the site answers to |
 | `HODU_TOKEN`, `HODU_TENANT_ID` | Your HoduCC API details |
 | `HODU_MOCK` | `1` = use the saved replies in `sample/`; `0` = the real API |
-| `HODU_UNANSWERED_STATUSES` | Which statuses count as unanswered (default `ABANDONED,DROPPED`) |
+| `HODU_UNANSWERED_STATUSES` | Which statuses count as unanswered (default `ABANDONED,DROPPED,HANGUP`) |
 | `HODU_SYNC_ON_VIEW_SECONDS` | Live mode: fetch at most this often while someone views today (default 60; 0 = off) |
 | `DJANGO_ADMIN_PATH` | Admin's address (default `admin/`); superusers only |
 | `HODU_AUTO_BACKFILL` | `1` = looking at never-fetched days fetches them in the background (default); `0` = off |

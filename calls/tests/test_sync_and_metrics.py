@@ -286,6 +286,18 @@ class MixedDayMetricsTests(TestCase):
         hour = m["hourly"][10]
         self.assertEqual((hour["answered"], hour["unanswered"], hour["outbound"]), (1, 1, 1))
 
+    def test_turned_away_calls_count_as_unanswered(self):
+        # HANGUP: HoduCC refused the call at once (TENANT_CALLS_LIMIT_REACHED), so the customer never got through.
+        hodu = {**settings.HODU, "UNANSWERED_STATUSES": ["ABANDONED", "DROPPED", "HANGUP"]}
+        sync_day(DAY, client=ListClient([
+            call_row(1),
+            call_row(2, call_status="HANGUP", agent_username=None, queue_name=None),
+        ]))
+        with override_settings(HODU=hodu):
+            m = compute_metrics(DAY, DAY)
+        self.assertEqual(m["totals"]["unanswered"], 1)
+        self.assertEqual(m["totals"]["other_inbound"], 0)
+
     def test_range_includes_the_whole_last_day(self):
         sync_day(DAY, client=ListClient([
             call_row(1, call_start_time="05-10-2026 00:00:00"),

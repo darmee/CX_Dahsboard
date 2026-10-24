@@ -165,10 +165,10 @@ export function directionCell(direction, { short = false } = {}) {
   return td;
 }
 
-// A call's status in a coloured pill: "Answered" (green), abandoned or dropped (red), anything else (grey).
+// A call's status in a coloured pill: "Answered" (green), abandoned, dropped or turned away (red), anything else (grey).
 export function statusCell(status) {
   const answered = status === "AGENT";
-  const unanswered = status === "ABANDONED" || status === "DROPPED";
+  const unanswered = status === "ABANDONED" || status === "DROPPED" || status === "HANGUP";
   const pill = answered ? "pill answered" : unanswered ? "pill unanswered" : "pill other";
   return cell(answered ? "Answered" : status === "DIAL" ? "Not connected" : status, pill);
 }

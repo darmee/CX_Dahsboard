@@ -6,6 +6,18 @@ line. For what comes next, see [ROADMAP.md](ROADMAP.md).
 
 ---
 
+## Round 12 · Missed rings, turned-away calls, clicking a bar (October 2026)
+
+**Asked:** "Rejections" showed 106 on a day with 33 calls, rings of 0 s "answered by" an agent, and clicking the
+Unanswered part of a bar showed nothing.
+
+| Change | Why | Where |
+| --- | --- | --- |
+| **Rejections is now "Missed rings (agents)"** | It counts rings to agents on calls in, not customers rejecting calls | `dashboard.html`, docs |
+| **0-second rings stay in the count** (explained, not removed) | Most missed rings are HoduCC retrying an agent's phone every 2 s when it can't reach it (`NORMAL_UNSPECIFIED`, `UNALLOCATED_NUMBER`): 92 of the 106 that day, from 8 calls. Kept on purpose, to show agents who can't be reached | `HOW_IT_WORKS.md` |
+| **`HANGUP` counts as unanswered** | Calls in that HoduCC turned away at once because the account's limit on calls at the same time was reached (`TENANT_CALLS_LIMIT_REACHED`). They were in "Other in", out of every unanswered number | `HODU_UNANSWERED_STATUSES` default, `format.js` |
+| **A bar opens the piece you click** | Chart.js passed every series at that position, Answered first, so the Unanswered piece opened the answered calls (often none) | `charts.js` `clickedBar` |
+
 ## Round 11 · No GitHub check (October 2026)
 
 **Asked:** delete `.github` and `.ruff_cache`.

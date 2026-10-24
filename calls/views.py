@@ -8,7 +8,7 @@ Views: functions that answer a web request.
     agent_api     -> JSON: one agent over a date range (Agent detail tab)
     monthly_api   -> JSON: calls per month (Monthly tab)
     calls_api     -> JSON: the calls behind a number, for the drill-down panel
-    rings_api     -> JSON: the missed rings behind the Rejections tile (the drill-down panel too)
+    rings_api     -> JSON: the missed rings behind the Missed rings (agents) tile (the drill-down panel too)
     live_api      -> JSON: what is happening right now, straight from HoduCC (Live tab and the top strip)
 
 The Overview, Agents, Agent detail and Monthly APIs also keep the data live: when they are asked about today,
@@ -336,7 +336,7 @@ def calls_api(request):
 def rings_api(request):
     """
     GET /api/rings/?from=2026-10-01&to=2026-10-18&queue=&agent=Agent01
-    -> the missed rings behind the Rejections tile and the missed-rings numbers, for the drill-down panel.
+    -> the missed rings behind the Missed rings (agents) tile and the missed-rings numbers, for the drill-down panel.
     """
     today = timezone.localdate()
     try:

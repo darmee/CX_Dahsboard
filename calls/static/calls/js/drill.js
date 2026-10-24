@@ -6,7 +6,7 @@
  * and lists the calls: when, the customer (only the last 4 digits are ever kept: •••2698), in or out,
  * the status, why the call ended (HoduCC's reason), the agent, and the wait, talk and hold times.
  * Above the list: how many calls there are, the most common reasons, and who hung up.
- * The Rejections tile and the missed-rings numbers open a list of *rings* instead (kind "rejected"):
+ * The Missed rings (agents) tile and the missed-rings numbers open a list of *rings* instead (kind "rejected"):
  *   GET /api/rings/?from=...&to=...&queue=...&agent=...   (views.rings_api)
  * each with the agent it rang, for how long, why it stopped, and how the call ended (and who took it).
  * Close it with the ×, the Esc key, or a click beside it.
@@ -47,8 +47,8 @@ const NOTES = {
     + "line failed. HoduCC records these calls with the status DIAL. “Why it ended” gives HoduCC's reason for each.",
   outbound: "Connected: the customer picked up. Not connected: no answer, busy, switched off or the line failed "
     + "(HoduCC's status DIAL). “Why it ended” gives HoduCC's reason for each call.",
-  unanswered: "Calls where the caller gave up waiting (ABANDONED) or the call was cut off (DROPPED) before an agent answered.",
-  unanswered_in: "Calls in where the caller gave up waiting (ABANDONED) or the call was cut off (DROPPED) before an agent answered.",
+  unanswered: "Calls where the caller gave up waiting (ABANDONED) or the call was cut off (DROPPED) before an agent answered, or HoduCC turned the call away because the account's limit on calls at the same time was reached (HANGUP).",
+  unanswered_in: "Calls in where the caller gave up waiting (ABANDONED) or the call was cut off (DROPPED) before an agent answered, or HoduCC turned the call away because the account's limit on calls at the same time was reached (HANGUP).",
   rejected: "Each line is one time a call rang an agent who didn't pick up: they declined it, didn't answer before "
     + "HoduCC moved it on (RECOVERY_ON_TIMER_EXPIRE, NO_ANSWER), or the caller hung up while it rang "
     + "(ORIGINATOR_CANCEL). “Answered by” shows whether someone else took the call in the end.",
