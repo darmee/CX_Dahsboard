@@ -46,7 +46,8 @@ export function colours() {
 }
 
 // Writes the total above each upright bar (each stack, when a chart has two bars side by side), like
-// "285" above a month. Skipped when the bars are too thin for a number to fit, and for zeros.
+// "285" above a month. Skipped when the bars are too thin for a number to fit, when it would run into
+// the number beside it (two bars side by side, e.g. calls in and calls out), and for zeros.
 const barLabels = {
   id: "barLabels",
   afterDatasetsDraw(chart) {
@@ -59,6 +60,7 @@ const barLabels = {
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
     const count = chart.data.labels.length;
+    let lastRight = -Infinity; // right edge of the last number written, left to right
     for (let i = 0; i < count; i++) {
       const stacks = new Map(); // stack name -> { total, top, x, width }
       for (const meta of metas) {
@@ -73,8 +75,10 @@ const barLabels = {
       }
       for (const s of stacks.values()) {
         const text = s.total.toLocaleString("en-GB");
-        if (s.width < 14 || ctx.measureText(text).width > s.width + 18) continue;
+        const width = ctx.measureText(text).width;
+        if (s.width < 14 || width > s.width + 18 || s.x - width / 2 < lastRight + 3) continue;
         ctx.fillText(text, s.x, s.top - 4);
+        lastRight = s.x + width / 2;
       }
     }
     ctx.restore();
@@ -303,7 +307,9 @@ window.addEventListener("themechange", rebuildAll);
 // the right for the end-of-bar numbers; upright bars get room at the top for the totals above them.
 // Grid lines are faint dashes; there are no axis lines.
 export function stackedBarOptions({ horizontal = false } = {}) {
-  const countAxis = { stacked: true, beginAtZero: true, ticks: { precision: 0 }, border: { display: false, dash: [4, 4] } };
+  // `grace` leaves room above the tallest bar inside the chart, so its total stays clear of the key above.
+  const countAxis = { stacked: true, beginAtZero: true, grace: horizontal ? 0 : "10%", ticks: { precision: 0 },
+    border: { display: false, dash: [4, 4] } };
   const labelAxis = { stacked: true, grid: { display: false }, border: { display: false } };
   return {
     indexAxis: horizontal ? "y" : "x",

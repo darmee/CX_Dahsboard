@@ -572,6 +572,13 @@ tbody tr:last-child td { border-bottom: 0; }
   background: linear-gradient(180deg, color-mix(in srgb, var(--button) 80%, #fff), var(--button));
 }
 .login .back { justify-self: center; font-size: 13px; font-weight: 650; }
+/* "or use your dashboard password" under "Sign in with OCI": words on a line, which unfold the password form */
+.login-or { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--muted); font-size: 13px; font-weight: 650; }
+.login-or::before, .login-or::after { content: ""; flex: 1; border-top: 1px solid var(--line, rgba(127, 127, 127, .3)); }
+.login-password summary { cursor: pointer; list-style: none; }
+.login-password summary::-webkit-details-marker { display: none; }
+.login-password summary:hover, .login-password[open] summary { color: var(--accent); }
+.login-password form { margin-top: 14px; }
 
 /* Anyone who has asked their computer for less motion gets none */
 @media (prefers-reduced-motion: reduce) {

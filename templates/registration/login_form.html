@@ -1,0 +1,9 @@
+{# The username + password form, on the login page (login.html) on its own or folded under "Sign in with OCI" #}
+<form method="post">
+  {% csrf_token %}
+  <label>Username {{ form.username }}</label>
+  <label>Password {{ form.password }}</label>
+  <a class="forgot" href="{% url 'password_reset' %}">Forgot password?</a>
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit" class="primary wide">Log in</button>
+</form>

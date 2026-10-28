@@ -119,6 +119,16 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "calls:dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
+# How long a login lasts. Django's default is a cookie kept for 2 weeks, which survives closing the
+# browser and shutting down the computer. Instead:
+#   - the cookie is dropped when the browser closes;
+#   - the login runs out after this many minutes with no requests. An open dashboard keeps asking for
+#     data, so it stays logged in; once the tab or computer is off, the clock runs down. This also covers
+#     browsers that bring back closed cookies ("continue where you left off" in Chrome/Edge).
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = int(env("DJANGO_SESSION_IDLE_MINUTES", "60")) * 60
+SESSION_SAVE_EVERY_REQUEST = True  # each request restarts the clock above
+
 # Where Admin lives. Only superusers can use it (calls/admin.py), and the dashboard has no link to it.
 # On a public server, choose an address nobody would guess, e.g. DJANGO_ADMIN_PATH=office-7f3k2/
 ADMIN_PATH = env("DJANGO_ADMIN_PATH", "admin/").strip("/") + "/"
@@ -224,4 +234,14 @@ else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = (os.getenv("DEFAULT_FROM_EMAIL", "") or MSGRAPH_SENDER
                       or os.getenv("EMAIL_HOST_USER", "") or "no-reply@dash-mfb.com")
+
+
+# --- Sign in with OCI (calls/oci_sso.py) ---------------------------------------
+# From the Confidential Application in the OCI identity domain. Empty OCI_SSO_ISSUER_URL: the button is hidden.
+OCI_SSO_ISSUER_URL = env("OCI_SSO_ISSUER_URL", "").strip().rstrip("/")
+OCI_SSO_CLIENT_ID = env("OCI_SSO_CLIENT_ID", "")
+OCI_SSO_CLIENT_SECRET = env("OCI_SSO_CLIENT_SECRET", "")
+# Must match the Redirect URL registered in OCI exactly, e.g. https://cxdashboard.dash-mfb.com/oidc/callback/
+# The dashboard answers on this address's path (config/urls.py), so changing it here is enough.
+OCI_SSO_REDIRECT_URI = env("OCI_SSO_REDIRECT_URI", "")
 
